@@ -9,13 +9,29 @@ import java.lang.reflect.Field;
 public class EventBusProxyFactory {
     private static final String TAG = "EventBusProxyFactory";
 
-    public static EventBus eventBusProxy(boolean isDebug, EventBus eventBus) {
+    public static EventBus eventBusProxy(boolean isDebug, EventBus eventBus, EventBusProxyListener eventBusProxyListener) {
         if (!isDebug) return eventBus;
         if (eventBus == EventBus.getDefault()) {
             throw new RuntimeException("eventBus is created by EventBus.getDefault(), please use defaultEventBusProxy or defaultEventBusProxy");
         }
         EventBusProxy eventBusProxy = new EventBusProxy(eventBus, isDebug);
         if (eventBusProxy.isAgent()) {
+            eventBusProxy.setEventBusProxyListener(eventBusProxyListener);
+            return eventBusProxy;
+        }
+        return eventBus;
+    }
+
+    public static EventBus eventBusProxy(boolean isDebug, EventBus eventBus, EventBusProxyHandler eventBusProxyHandler) {
+        if (!isDebug) return eventBus;
+        if (eventBus == EventBus.getDefault()) {
+            throw new RuntimeException("eventBus is created by EventBus.getDefault(), please use defaultEventBusProxy or defaultEventBusProxy");
+        }
+        EventBusProxy eventBusProxy = new EventBusProxy(eventBus, isDebug);
+        if (eventBusProxy.isAgent()) {
+            EventBusProxyListenerImpl eventBusProxyListener = new EventBusProxyListenerImpl();
+            eventBusProxyListener.setEventBusProxyHandler(eventBusProxyHandler);
+            eventBusProxy.setEventBusProxyListener(eventBusProxyListener);
             return eventBusProxy;
         }
         return eventBus;
