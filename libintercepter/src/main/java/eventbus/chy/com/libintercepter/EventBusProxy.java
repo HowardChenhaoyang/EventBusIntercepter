@@ -4,18 +4,13 @@ package eventbus.chy.com.libintercepter;
 import android.util.Log;
 
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.SubscriberMethod;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 public class EventBusProxy extends EventBus {
-    private EventBusProxyHandler mEventBusProxyHandler;
+    private EventBusProxyListener mEventBusProxyListener;
     private static final String TAG = EventBusProxy.class.getSimpleName();
     private EventBus originEventBus;
 
-    public EventBusProxy(EventBus eventBus, boolean isDebug) {
+    EventBusProxy(EventBus eventBus, boolean isDebug) {
         if (!isDebug) {
             originEventBus = eventBus;
             return;
@@ -28,49 +23,35 @@ public class EventBusProxy extends EventBus {
         }
     }
 
+    boolean isAgent() {
+        return originEventBus == null;
+    }
+
+    void setEventBusProxyListener(EventBusProxyListener eventBusProxyListener) {
+        this.mEventBusProxyListener = eventBusProxyListener;
+    }
+
+    @Override
+    public void register(Object subscriber) {
+        super.register(subscriber);
+        if (mEventBusProxyListener != null) {
+            mEventBusProxyListener.register(this, subscriber);
+        }
+    }
+
     @Override
     public void post(Object event) {
         if (originEventBus != null) {
             originEventBus.post(event);
             return;
         }
-        if (mEventBusProxyHandler != null) {
-            event = mEventBusProxyHandler.beforePost(event, false);
-            mEventBusProxyHandler.subscribers(getEventBusSubscriptions(event));
-
+        if (mEventBusProxyListener != null) {
+            event = mEventBusProxyListener.beforePost(this, event);
         }
         super.post(event);
-        if (mEventBusProxyHandler != null) {
-            mEventBusProxyHandler.afterPost(event, false);
+        if (mEventBusProxyListener != null) {
+            mEventBusProxyListener.afterPost(this, event);
         }
-    }
-
-    private List<EventBusSubscription> getEventBusSubscriptions(Object event) {
-        try {
-            List<EventBusSubscription> eventBusSubscriptions = new ArrayList<>();
-            List subscribers = EventBusPropertiesManager.getInstance().getEventBusSubscribers(this, event);
-            if (subscribers == null) return null;
-            for (Object object : subscribers) {
-                EventBusSubscription eventBusSubscription = new EventBusSubscription();
-
-                Field subscriberField = object.getClass().getDeclaredField("subscriber");
-                subscriberField.setAccessible(true);
-                Object subscriber = subscriberField.get(object);
-                eventBusSubscription.subscriber = subscriber;
-
-                Field subscriberMethodField = object.getClass().getDeclaredField("subscriberMethod");
-                subscriberMethodField.setAccessible(true);
-                SubscriberMethod subscriberMethod = (SubscriberMethod) subscriberMethodField.get(object);
-                EventBusSubscriberMethod eventBusSubscriberMethod = new EventBusSubscriberMethod();
-                EventBusPropertiesManager.getInstance().copyProperties(eventBusSubscriberMethod, eventBusSubscriberMethod.getClass(), subscriberMethod);
-                eventBusSubscription.subscriberMethod = eventBusSubscriberMethod;
-                eventBusSubscriptions.add(eventBusSubscription);
-            }
-            return eventBusSubscriptions;
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage(), e);
-        }
-        return null;
     }
 
     @Override
@@ -79,29 +60,20 @@ public class EventBusProxy extends EventBus {
             originEventBus.postSticky(event);
             return;
         }
-        if (mEventBusProxyHandler != null) {
-            event = mEventBusProxyHandler.beforePost(event, true);
+        if (mEventBusProxyListener != null) {
+            event = mEventBusProxyListener.beforePostSticky(this, event);
         }
         super.postSticky(event);
-        if (mEventBusProxyHandler != null) {
-            mEventBusProxyHandler.afterPost(event, true);
+        if (mEventBusProxyListener != null) {
+            mEventBusProxyListener.afterPostSticky(this, event);
         }
     }
 
-    public static void proxyDefaultEventBus(boolean isDebug, EventBusProxyHandler eventBusProxyHandler) {
-        EventBus defaultEventBus = EventBus.getDefault();
-        try {
-            Field defaultEventBusField = defaultEventBus.getClass().getDeclaredField("defaultInstance");
-            defaultEventBusField.setAccessible(true);
-            EventBusProxy eventBusProxy = new EventBusProxy((EventBus) defaultEventBusField.get(null), isDebug);
-            defaultEventBusField.set(null, eventBusProxy);
-            eventBusProxy.setEventBusProxyHandler(eventBusProxyHandler);
-        } catch (Throwable e) {
-            Log.e(TAG, e.getMessage(), e);
+    @Override
+    public synchronized void unregister(Object subscriber) {
+        super.unregister(subscriber);
+        if (mEventBusProxyListener != null) {
+            mEventBusProxyListener.unregister(this, subscriber);
         }
-    }
-
-    public void setEventBusProxyHandler(EventBusProxyHandler eventBusProxyHandler) {
-        this.mEventBusProxyHandler = eventBusProxyHandler;
     }
 }

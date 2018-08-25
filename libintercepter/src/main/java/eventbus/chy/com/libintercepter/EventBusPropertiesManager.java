@@ -8,14 +8,14 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-public class EventBusPropertiesManager {
+class EventBusPropertiesManager {
     private static EventBusPropertiesManager mEventBusPropertiesManager;
     private static final String TAG = EventBusPropertiesManager.class.getSimpleName();
 
     private EventBusPropertiesManager() {
     }
 
-    public static EventBusPropertiesManager getInstance() {
+    static EventBusPropertiesManager getInstance() {
         if (mEventBusPropertiesManager != null) {
             return mEventBusPropertiesManager;
         }
@@ -27,7 +27,7 @@ public class EventBusPropertiesManager {
         return mEventBusPropertiesManager;
     }
 
-    public void copyProperties(Object dst, Class dstClass,Object src) throws NoSuchFieldException, IllegalAccessException {
+    void copyProperties(Object dst, Class dstClass, Object src) throws NoSuchFieldException, IllegalAccessException {
         Field[] fields = src.getClass().getDeclaredFields();
         for (Field field : fields) {
             Field dstField = dstClass.getDeclaredField(field.getName());
@@ -37,7 +37,7 @@ public class EventBusPropertiesManager {
         }
     }
 
-    public <T extends EventBus> List getEventBusSubscribers(T t, Object event) {
+    <T extends EventBus> List getEventBusSubscribers(T t, Object event) {
         Field field = null;
         Class eventBusClass = t.getClass();
         try {

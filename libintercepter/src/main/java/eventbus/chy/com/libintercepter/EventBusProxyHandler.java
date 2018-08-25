@@ -8,5 +8,7 @@ public interface EventBusProxyHandler {
 
     void afterPost(Object event, boolean isStick);
 
-    void subscribers(List<EventBusSubscription> eventBusSubscription);
+    void invokedSubscriptions(List<EventBusSubscription> eventBusSubscription);
+
+    void invokedSubscriptionsWhenRegister(List<EventBusSubscription> eventBusSubscription);
 }
