@@ -10,7 +10,12 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import eventbus.chy.com.libintercepter.EventBusProxy;
+import java.util.List;
+
+import eventbus.chy.com.libintercepter.EventBusProxyFactory;
+import eventbus.chy.com.libintercepter.EventBusProxyHandler;
+import eventbus.chy.com.libintercepter.EventBusSubscription;
+
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
@@ -19,13 +24,35 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+//        EventBusManager.getEventBus().register(this);
         EventBus.getDefault().register(this);
-        EventBusProxy.proxyDefaultEventBus(true, null);
+        EventBusProxyFactory.defaultEventBusProxy(true, new EventBusProxyHandler() {
+            @Override
+            public Object beforePost(Object event, boolean isStick) {
+                return event;
+            }
+
+            @Override
+            public void afterPost(Object event, boolean isStick) {
+
+            }
+
+            @Override
+            public void invokedSubscriptions(List<EventBusSubscription> eventBusSubscription) {
+
+            }
+
+            @Override
+            public void invokedSubscriptionsWhenRegister(List<EventBusSubscription> eventBusSubscription) {
+
+            }
+        });
         findViewById(R.id.textView).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 EventMessage eventMessage = new EventMessage();
                 eventMessage.message = "from mainActivity";
+//                EventBusManager.getEventBus().post(eventMessage);
                 EventBus.getDefault().post(eventMessage);
             }
         });
@@ -47,5 +74,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+//        EventBusManager.getEventBus().unregister(this);
     }
 }

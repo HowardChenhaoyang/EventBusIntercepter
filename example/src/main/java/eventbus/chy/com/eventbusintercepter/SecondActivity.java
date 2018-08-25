@@ -9,6 +9,7 @@ import android.view.View;
 
 import org.greenrobot.eventbus.EventBus;
 
+
 public class SecondActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -19,6 +20,7 @@ public class SecondActivity extends AppCompatActivity {
             public void onClick(View v) {
                 EventMessage eventMessage = new EventMessage();
                 eventMessage.message = "from SecondActivity";
+//                EventBusManager.getEventBus().post(eventMessage);
                 EventBus.getDefault().post(eventMessage);
             }
         });
