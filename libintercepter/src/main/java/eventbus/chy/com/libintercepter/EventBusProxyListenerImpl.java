@@ -24,7 +24,7 @@ public class EventBusProxyListenerImpl implements EventBusProxyListener {
             Field subscriberMethodFinderField = EventBus.class.getDeclaredField("subscriberMethodFinder");
             subscriberMethodFinderField.setAccessible(true);
             Object subscriberMethodFinder = subscriberMethodFinderField.get(eventBusProxy);
-            Method findSubscriberMethods = subscriberMethodFinder.getClass().getDeclaredMethod("findSubscriberMethods");
+            Method findSubscriberMethods = subscriberMethodFinder.getClass().getDeclaredMethod("findSubscriberMethods", Class.class);
             findSubscriberMethods.setAccessible(true);
             List subscriberMethods = (List) findSubscriberMethods.invoke(subscriberMethodFinder, subscriber.getClass());
             if (subscriberMethods == null) return;
