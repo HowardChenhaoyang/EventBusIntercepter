@@ -27,11 +27,10 @@ public class EventBusPropertiesManager {
         return mEventBusPropertiesManager;
     }
 
-    public void copyProperties(Object dst, Object src) throws NoSuchFieldException, IllegalAccessException {
+    public void copyProperties(Object dst, Class dstClass,Object src) throws NoSuchFieldException, IllegalAccessException {
         Field[] fields = src.getClass().getDeclaredFields();
-        Class dstClass = dst.getClass();
         for (Field field : fields) {
-            Field dstField = dstClass.getSuperclass().getDeclaredField(field.getName());
+            Field dstField = dstClass.getDeclaredField(field.getName());
             field.setAccessible(true);
             dstField.setAccessible(true);
             dstField.set(dst, field.get(src));

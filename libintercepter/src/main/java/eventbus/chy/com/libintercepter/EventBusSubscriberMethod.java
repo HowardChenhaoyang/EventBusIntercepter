@@ -14,4 +14,16 @@ public class EventBusSubscriberMethod {
      * Used for efficient comparison
      */
     public String methodString;
+
+    @Override
+    public String toString() {
+        return "EventBusSubscriberMethod{" +
+                "method=" + method.getName() +
+                ", threadMode=" + threadMode.name() +
+                ", eventType=" + eventType.getName() +
+                ", priority=" + priority +
+                ", sticky=" + sticky +
+                ", methodString='" + methodString + '\'' +
+                '}';
+    }
 }

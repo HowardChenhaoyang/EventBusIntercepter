@@ -15,9 +15,13 @@ public class EventBusProxy extends EventBus {
     private static final String TAG = EventBusProxy.class.getSimpleName();
     private EventBus originEventBus;
 
-    public EventBusProxy(EventBus eventBus) {
+    public EventBusProxy(EventBus eventBus, boolean isDebug) {
+        if (!isDebug) {
+            originEventBus = eventBus;
+            return;
+        }
         try {
-            EventBusPropertiesManager.getInstance().copyProperties(this, eventBus);
+            EventBusPropertiesManager.getInstance().copyProperties(this, getClass().getSuperclass(), eventBus);
         } catch (Exception exception) {
             originEventBus = eventBus;
             Log.e(TAG, exception.getMessage(), exception);
@@ -32,8 +36,9 @@ public class EventBusProxy extends EventBus {
         }
         if (mEventBusProxyHandler != null) {
             event = mEventBusProxyHandler.beforePost(event, false);
+            mEventBusProxyHandler.subscribers(getEventBusSubscriptions(event));
+
         }
-        mEventBusProxyHandler.subscribers(getEventBusSubscriptions(event));
         super.post(event);
         if (mEventBusProxyHandler != null) {
             mEventBusProxyHandler.afterPost(event, false);
@@ -57,10 +62,11 @@ public class EventBusProxy extends EventBus {
                 subscriberMethodField.setAccessible(true);
                 SubscriberMethod subscriberMethod = (SubscriberMethod) subscriberMethodField.get(object);
                 EventBusSubscriberMethod eventBusSubscriberMethod = new EventBusSubscriberMethod();
-                EventBusPropertiesManager.getInstance().copyProperties(eventBusSubscriberMethod, subscriberMethod);
+                EventBusPropertiesManager.getInstance().copyProperties(eventBusSubscriberMethod, eventBusSubscriberMethod.getClass(), subscriberMethod);
                 eventBusSubscription.subscriberMethod = eventBusSubscriberMethod;
                 eventBusSubscriptions.add(eventBusSubscription);
             }
+            return eventBusSubscriptions;
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
@@ -79,6 +85,19 @@ public class EventBusProxy extends EventBus {
         super.postSticky(event);
         if (mEventBusProxyHandler != null) {
             mEventBusProxyHandler.afterPost(event, true);
+        }
+    }
+
+    public static void proxyDefaultEventBus(boolean isDebug, EventBusProxyHandler eventBusProxyHandler) {
+        EventBus defaultEventBus = EventBus.getDefault();
+        try {
+            Field defaultEventBusField = defaultEventBus.getClass().getDeclaredField("defaultInstance");
+            defaultEventBusField.setAccessible(true);
+            EventBusProxy eventBusProxy = new EventBusProxy((EventBus) defaultEventBusField.get(null), isDebug);
+            defaultEventBusField.set(null, eventBusProxy);
+            eventBusProxy.setEventBusProxyHandler(eventBusProxyHandler);
+        } catch (Throwable e) {
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 
