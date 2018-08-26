@@ -5,7 +5,7 @@ import android.util.Log;
 
 import org.greenrobot.eventbus.EventBus;
 
-public class EventBusProxy extends EventBus {
+class EventBusProxy extends EventBus {
     private EventBusProxyListener mEventBusProxyListener;
     private static final String TAG = EventBusProxy.class.getSimpleName();
     private EventBus originEventBus;
